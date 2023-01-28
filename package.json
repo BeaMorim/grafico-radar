@@ -2,7 +2,7 @@
   "name": "notion-sdk-project",
   "version": "1.0.0",
   "description": "",
-  "main": "server.ts",
+  "main": "index.html",
   "private": true,
   "scripts": {
     "start": "node server.ts",
