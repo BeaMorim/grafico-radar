@@ -16,32 +16,83 @@
         <button type="submit" class="btn btn-primary">Primary</button>
     </form>
 
+    <div id="header"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 
     <script>
-        if("<%= infos %>") 
-            console.log("sucesso")
-        else
-            console.log("erro") 
-        
-          
 
         const ctx = document.getElementById('myChart');
-        
-        new Chart(ctx, {
-            type: 'radar',
-            data: {
-            labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-            datasets: [{
-                label: '# of Votes',
-                data: [12, 19, 3, 5, 2, 3],
-                borderWidth: 1
-            }]
-            }
-        });
+        let labels;
+        let data;
+        let chartImage;
+        var xhr = new XMLHttpRequest();
 
-    
+        function dataURLtoBlob(dataURL) {
+            // convert base64 to raw binary data held in a string
+            // doesn't handle URLEncoded DataURIs - see SO answer #6850276 for code that does this
+            var byteString = atob(dataURL.split(',')[1]);
+
+            // separate out the mime component
+            var mimeString = dataURL.split(',')[0].split(':')[1].split(';')[0]
+
+            // write the bytes of the string to an ArrayBuffer
+            var ab = new ArrayBuffer(byteString.length);
+
+            // create a view into the buffer
+            var ia = new Uint8Array(ab);
+
+            // set the bytes of the buffer to the correct values
+            for (var i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+
+            // write the ArrayBuffer to a blob, and you're done
+            var blob = new Blob([ab], {type: mimeString});
+            return blob;
+        };
+
+
+        if("<%= chartValues.label %>" != []) {
+
+            labels = "<%= chartValues.label %>".split(",").map(String);
+            data = "<%= chartValues.data %>".split(",").map(value => parseInt(value));
+
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '# of Votes',
+                        data: data,
+                        borderWidth: 1
+                    }],
+                },
+                options: {
+                    animation:{
+                        onComplete : async function(){
+                            chartImage = ctx.toDataURL('image/jpeg', 0.5);
+
+                            console.log(chartImage)
+
+                            fetch("/incluir-grafico", {
+                                method: "POST",
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                }, 
+                                body: JSON.stringify({ data: chartImage })
+                            })
+                            
+                        }
+                    }
+                }
+                
+            });
+
+
+        } 
     </script>
 </body>
 </html>

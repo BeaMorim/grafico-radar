@@ -1,5 +1,4 @@
 import { Client } from "@notionhq/client";
-import Chart from 'chart.js/auto';
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,10 +9,18 @@ interface Title {
 
 interface DatabaseItem {
   properties: {
-    Name: {
+    Pilar: {
       title: Array<Title>
+    },
+    Nível: {
+      number: number
     }
   }
+}
+
+interface ChartValues {
+  label: Array<string>,
+  data: Array<number>
 }
 
 
@@ -28,14 +35,60 @@ export async function submit(req:any) {
     database_id: "309633b9f084452c85631116486578ef",
   });
 
+  let chartValues: ChartValues = {
+    label: [],
+    data: [],
+  }
+
   let items = response.results as unknown as Array<DatabaseItem>
   
   items.forEach((element:DatabaseItem, index) => {
-    console.log(element.properties.Name.title[0].plain_text)
-  });
-  
 
-  return response;
+    chartValues.label[index] = element.properties.Pilar.title[0].plain_text
+    chartValues.data[index] =element.properties.Nível.number
+    
+  });
+
+  return chartValues;
+}
+
+export async function includeChart(chartImage:string) {
+  const notion = new Client({
+    auth: process.env.NOTION_TOKEN,
+  });
+
+  await notion.blocks.children.append({
+      block_id: "422110a407524aedb906b3ac63054157",
+      children: [
+        {
+          "type": "heading_1",
+          //...other keys excluded
+          "heading_1": {
+            "rich_text": [{
+              "type": "text",
+              "text": {
+                "content": "Lacinato kale",
+                "link": null
+              }
+            }],
+            "color": "default",
+            "is_toggleable": false
+          }
+        },
+        {
+          "type": "image",
+          //...other keys excluded
+          "image": {
+            "type": "external",
+            "external": {
+                "url": chartImage
+            }
+          }
+        }
+      ],
+    });
+    
+  
 }
 
 // const response2 = await notion.blocks.retrieve({
@@ -43,34 +96,4 @@ export async function submit(req:any) {
 // });
 
 
-// const response2 = await notion.blocks.children.append({
-//   block_id: "422110a407524aedb906b3ac63054157",
-//   children: [
-//     {
-//       "heading_2": {
-//         "rich_text": [
-//           {
-//             "text": {
-//               "content": "Lacinato kale"
-//             }
-//           }
-//         ]
-//       }
-//     },
-//     {
-//       "paragraph": {
-//         "rich_text": [
-//           {
-//             "text": {
-//               "content": "Lacinato kale is a variety of kale with a long tradition in Italian cuisine, especially that of Tuscany. It is also known as Tuscan kale, Italian kale, dinosaur kale, kale, flat back kale, palm tree kale, or black Tuscan palm.",
-//               "link": {
-//                 "url": "https://en.wikipedia.org/wiki/Lacinato_kale"
-//               }
-//             }
-//           }
-//         ]
-//       }
-//     }
-//   ],
-// });
-
+// 
