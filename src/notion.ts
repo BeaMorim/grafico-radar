@@ -1,7 +1,7 @@
 import { Client } from "@notionhq/client";
-import dotenv from "dotenv";
+// import dotenv from "dotenv";
 
-dotenv.config();
+// dotenv.config();
 
 interface Title {
   plain_text: string
